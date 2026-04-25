@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "[Swift 스터디 2편] 객체지향 프로그래밍: 구조체와 클래스부터 접근제어까지"
-date: 2026-04-25 18:00:00 +0900
+date: 2026-04-26 02:00:00 +0900
 categories: [Swift]
 tags: [Swift, iOS, Study, OOP]
 ---
