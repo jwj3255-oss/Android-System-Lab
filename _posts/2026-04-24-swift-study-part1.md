@@ -95,7 +95,7 @@ print(capitals["한국"]!) // "서울"
 var numbers: Set<Int> = [1, 2, 3, 3, 4] // [1, 2, 3, 4] 로 저장됨
 ```
 
-여기에 추가로 어떤 타입이든 받을 수 있는 `Any`와 클래스 인스턴스만 받는 `AnyObject` 같은 범용 타입도 존재합니다.
+여기에 추가로 어떤 타입이든 받을 수 있는 `Any`와 클래스 인스턴스만 받는 `AnyObject` 같은 범용 타입도 존재하지만, 사용하지 않는 것을 추천합니다.
 
 ---
 
@@ -104,7 +104,7 @@ var numbers: Set<Int> = [1, 2, 3, 3, 4] // [1, 2, 3, 4] 로 저장됨
 Swift의 연산자는 다른 프로그래밍 언어와 거의 유사합니다.
 
 - **산술 연산자**: `+`, `-`, `*`, `/`, `%` (나머지)
-- **비교 연산자**: `==`, `!=`, `>`, `<`, `>=`, `<=`
+- **비교 연산자**: `==`, `!=`, `>`, `<`, `>=`, `<=`, `===`,
 - **논리 연산자**: `&&`(AND), `||`(OR), `!`(NOT)
 - **삼항 연산자**: `조건 ? 참일 때 값 : 거짓일 때 값`
 
@@ -112,8 +112,33 @@ Swift의 연산자는 다른 프로그래밍 언어와 거의 유사합니다.
 let score = 85
 let hasPassed = score >= 80 // true
 
-// 삼항 연산자 무조건 외우기!
+// 삼항 연산자
 let message = hasPassed ? "합격입니다" : "불합격입니다" 
+
+// 참조가 같은 인스턴스를 가르키는지 비교
+let referenceA: SomeClass = SomeClass()
+let referenceB: SomeClass = SomeClass()
+let referenceC: SomeClass = referenceA
+
+print(referenceA === referenceB) // false
+print(referenceA === referenceC) // true
+```
+
+다른 점이 있다면, 오버플로에 대비한 연산을 해주는 오버플로 연산자와 nil 병합 연산자가 있습니다.
+
+- **오버플로 연산자**: `&+`, `&-`, `&*`, `&/`, `&%`
+- **nil 병합 연산자**: `??`
+
+```swift
+let a: UInt8 = 255
+let b: UInt8 = 1
+
+print(a &+ b) // 0
+
+let optionalName: String? = nil
+let name: String = optionalName ?? "손님"
+
+print(name) // "손님"
 ```
 
 ---
@@ -122,6 +147,7 @@ let message = hasPassed ? "합격입니다" : "불합격입니다"
 
 ### 조건문 (if, switch)
 Swift의 `switch`문은 다른 언어에 비해 훨씬 강력합니다! 모든 경우의 수를 덮어야(Exhaustive) 하며, `break`를 쓰지 않아도 조건에 맞으면 자동으로 빠져나옵니다.
+또한, case 구문에 범위 연산자를 사용할 수도 있습니다.
 
 ```swift
 let fruit = "Apple"
@@ -141,6 +167,22 @@ case "Banana", "Mango": // 여러 개 동시 매칭 가능
 default: // 반드시 default가 있어야 함 (모든 케이스를 다루지 않았다면)
     print("알 수 없는 과일")
 }
+
+let integerValue: Int = 5
+
+swtich integerValue {
+case 0:
+    print("Value == zero")
+case 1...10:
+    print("Value is between 1 and 10")
+case Int.min..<0, 101..<Int.max:
+    print("Value < 0 or Value > 100")
+default:
+    print("10 < Value <= 100")
+}
+
+// 결과
+// Value is between 1 and 10
 ```
 
 ### 반복문 (for-in, while)
@@ -158,6 +200,15 @@ while count < 3 {
     count += 1
 }
 ```
+다른 프로그래밍 언어의 do-while에 해당하는 것은 repeat-while 구문입니다.
+
+```swift
+var count = 0
+repeat {
+    print("repeat-while 문 실행")
+    count += 1
+} while count < 3
+```
 
 ---
 
@@ -165,6 +216,7 @@ while count < 3 {
 
 함수는 특정 작업을 수행하는 코드의 블록입니다. Swift에서는 `func` 키워드를 사용합니다.
 특히 Swift의 함수는 **전달인자 레이블(Argument Label)**을 가질 수 있어, 코드를 읽을 때 마치 영어 문장을 읽는 것처럼 자연스럽게 만들어줍니다.
+전달인자 레이블을 사용하고 싶지 않으면 와일드카드 식별자를 사용하면 됩니다.
 
 ```swift
 // name은 매개변수 이름이자 전달인자 레이블
@@ -180,6 +232,38 @@ func go(from origin: String, to destination: String) {
 
 sayHello(name: "Swift")
 go(from: "서울", to: "부산")
+
+// 전달인자 레이블이 없는 함수 정의와 사용
+func sayHello(_ name: String) -> String {
+    return "Hello, \(name)!"
+}
+
+sayHello("Swift")
+```
+
+### 빌림과 소비 매개변수
+스위프트에서는 전달인자가 어떻게 사용될 것인지 borrowing이나 consuming을 붙여 더욱 상세한 제약을 부여할 수 있습니다.
+borrowing 제어자는 함수가 매개변수의 값을 유지하지 않는다는 것을 나타냅니다. 이 경우 호출자에게 전달인자의 소유권이 있습니다.
+
+```swift
+var storedValue: Int = 0
+
+func isLessThan(lhs: borrowing Int, rhs: borrowing Int) -> Bool {
+    return lhs < rhs
+}
+
+func store(_ value: borrowing Int) {
+    storedValue = value // 오류 발생!! 빌린 값은 암시적으로 복사할 수 없습니다.
+}
+```
+
+반면, consuming 매개변수 제어자는 함수가 전달인자의 소유권을 갖고 함수가 종료되기전에 해당 값을 저장하거나 파괴하는 책임을 갖게 됩니다.
+consuming은 함수를 호출하는 쪽에서 함수 호출 후에 더 이상 전달 값을 사용할 필요가 없을 때 오버헤드를 줄일 수 있습니다.
+
+```swift
+func store(_ value: consuming Int) {
+    storedValue = value // 오류 없음! 소유권을 가져왔기 때문에 저장 가능
+}
 ```
 
 ---
