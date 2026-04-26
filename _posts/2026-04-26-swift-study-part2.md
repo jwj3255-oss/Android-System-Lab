@@ -248,8 +248,27 @@ var f2 = Fahrenheit(fromKelvin: 273.15)
 
 매개변수가 없는 `init()`은 기본 이니셜라이저이며, 저장 프로퍼티에 명시적으로 초기값이 할당되어 있으면 자동으로 제공되기도 합니다. 특히 구조체는 모든 저장 프로퍼티를 매개변수로 받는 **멤버와이즈 이니셜라이저(Memberwise Initializer)**를 자동으로 제공해 줍니다.
 
+```swift
+struct Point {
+    let x: Double
+    let y: Double
+}
+
+// 멤버와이즈 이니셜라이저가 자동으로 제공됨
+let p1 = Point(x: 10.0, y: 20.0) 
+```
+
+`init()` 메서드는 실패할 수도 있습니다. 그럴 경우 `init?()` 과 같이 옵셔널 이니셜라이저를 사용할 수 있습니다. 실패 시 **nil**을 반환하면 됩니다.
+
+```swift
+init?(name: String) {
+    if name.isEmpty { return nil }
+    self.name = name
+}
+```
+
 ### 디이니셜라이저 (Deinitializer)
-디이니셜라이저는 클래스 인스턴스가 메모리에서 해제되기 직전에 호출됩니다. `deinit` 키워드를 사용하며, **클래스에서만** 사용할 수 있습니다. 파일 닫기나 메모리 관련 추가 해제 작업이 필요할 때 유용합니다.
+디이니셜라이저는 클래스 인스턴스가 메모리에서 해제되기 직전에 호출됩니다. `deinit` 키워드를 사용하며, **클래스에서만** 사용할 수 있습니다. 파일 닫기나 저장, 메모리 관련 추가 해제 작업 등이 필요할 때 유용합니다.
 
 ```swift
 class Player {
@@ -277,9 +296,10 @@ playerOne = nil // 이 시점에 deinit 블록이 실행됨
 
 1. **`open`**: 모듈 외부에서도 접근 가능하며, 클래스를 다른 모듈에서 상속하거나 오버라이드할 수 있습니다. (클래스와 클래스 멤버에만 사용)
 2. **`public`**: 모듈 외부에서 접근 가능하지만, 다른 모듈에서 상속/오버라이드는 불가능합니다. (프레임워크 작성 시 주로 사용)
-3. **`internal`** (기본값): 같은 모듈(.app, .framework 등) 내의 모든 소스 파일에서 자유롭게 접근할 수 있습니다.
-4. **`fileprivate`**: 선언된 소스 파일 내부에서만 접근할 수 있습니다.
-5. **`private`**: 선언된 블록과 동일한 파일 내의 extension 안에서만 허용되는 가장 제한적인 접근 수준입니다.
+3. **`package`**: 같은 패키지 내의 모든 소스 파일에서 접근 가능하지만, 외부 패키지에서는 접근 불가능합니다.
+4. **`internal`** (기본값): 같은 모듈(.app, .framework 등) 내의 모든 소스 파일에서 자유롭게 접근할 수 있습니다.
+5. **`fileprivate`**: 선언된 소스 파일 내부에서만 접근할 수 있습니다.
+6. **`private`**: 선언된 블록과 동일한 파일 내의 extension 안에서만 허용되는 가장 제한적인 접근 수준입니다.
 
 ```swift
 public class SomePublicClass {                 // 외부 모듈에서도 접근 가능한 클래스
@@ -287,6 +307,22 @@ public class SomePublicClass {                 // 외부 모듈에서도 접근 
     var someInternalProperty = 0               // 기본 접근 수준(internal), 같은 모듈 내에서 접근 가능
     fileprivate func someFilePrivateMethod() {}// 이 소스 파일 내에서만 접근 가능한 메서드
     private func somePrivateMethod() {}        // 이 클래스 정의 내부에서만 접근 가능한 메서드
+}
+```
+
+설정자(Setter)만 더 낮은 접근수준을 갖도록 제한할 수 있습니다.
+
+```swift
+public struct Person {
+    private var age: Int
+    internal private(set) var internalAge: Int {
+        get {
+            return age // 외부에서는 값을 읽을 수 있다
+        }
+        set {
+            age += 1 // 외부에서는 값을 변경할 수 없다
+        }
+    }
 }
 ```
 
